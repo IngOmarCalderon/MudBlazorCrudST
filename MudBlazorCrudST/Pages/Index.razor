@@ -1,0 +1,195 @@
+﻿@page "/"
+
+@using MudBlazorCrudST.Data
+@inject MudBlazorCrudST.IService.IAnimalService animalService
+@inject MudBlazor.ISnackbar Snackbar
+
+<MudCard Elevation="25">
+	<MudCardHeader>
+		<CardHeaderContent>
+			<MudText Typo="Typo.h6">Add / Edit Animal</MudText>
+		</CardHeaderContent>
+	</MudCardHeader>
+	<MudCardContent>
+		<div class="row">
+			<div class="form-group col-md-6">
+				<MudTextField @bind-Value="animal.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+			</div>
+			<div class="form-group col-md-6">
+				<MudTextField @bind-Value="animal.Breed" Label="Breed" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+			</div>
+		</div>
+		<div class="row">
+			<div class="form-group col-md-3">
+				<MudDatePicker Label="BirthDate" @bind-Date="lDate" DateFormat="MM/dd/yyyy" />
+			</div>
+			<div class="form-group col-md-3">
+				<MudSelect @bind-Value="animal.Sex" T="string" Label="Sex" AnchorOrigin="Origin.BottomCenter">
+					<MudSelectItem Value="@("Male")" />
+					<MudSelectItem Value="@("Female")" />
+				</MudSelect>
+			</div>
+			<div class="form-group col-md-3">
+				<MudTextField @bind-Value="animal.Price" Label="Price" Min="0" MaxLength="16" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+			</div>
+			<div class="form-group col-md-3">
+				<MudSelect @bind-Value="animal.Status" T="string" Label="Status" AnchorOrigin="Origin.BottomCenter">
+					<MudSelectItem Value="@("Active")" />
+					<MudSelectItem Value="@("Inactive")" />
+				</MudSelect>
+			</div>
+		</div>
+		<br />
+		<MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save">Save</MudButton>
+	</MudCardContent>
+</MudCard>
+
+<hr />
+@*<MudText Inline="true" Class="align-self-center">Selected: @animal?.Name</MudText>*@
+@*<MudText>Selected items (@selectedItems?.Count): @(selectedItems == null ? "" : string.Join(", ", selectedItems.OrderBy(x => x.Name).Select(x => x.Name)))</MudText>*@
+@*<hr />*@
+
+<MudTable Items="@animals" Dense="@dense" Hover="@hover" MultiSelection="true" @bind-SelectedItems="selectedItems" Filter="new Func<Animal,bool>(FilterFunc)" @bind-student="animal">
+	<ToolBarContent>
+		<MudText Typo="Typo.h6">Animals list</MudText>
+		<MudSpacer />
+		@if (selectedItems.Count > 0)
+		{
+			<MudTooltip Text="Save Selected Animals">
+				<MudIconButton Class="mud-table-button-add" OnClick=@OnUpdateAll Icon="@Icons.Material.Filled.Check" Color="Color.Info" aria-label="Check" Size="Size.Large"></MudIconButton>
+			</MudTooltip>
+
+		}
+		<MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+	</ToolBarContent>
+	<HeaderContent>
+		<MudTh>Name</MudTh>
+		<MudTh>Breed</MudTh>
+		<MudTh>BirthDate</MudTh>
+		<MudTh>Sex</MudTh>
+		<MudTh>Price</MudTh>
+		<MudTh>Status</MudTh>
+		<MudTh>Action</MudTh>
+	</HeaderContent>
+	<RowTemplate>
+		<MudTd DataLabel="Name">@context.Name</MudTd>
+		<MudTd DataLabel="Breed">@context.Breed </MudTd>
+		<MudTd DataLabel="BirthDate">@context.BirthDate.ToString("MM/dd/yyyy")</MudTd>
+		<MudTd DataLabel="Sex">@context.Sex</MudTd>
+		<MudTd DataLabel="Price">@context.Price.ToString("C")</MudTd>
+		<MudTd DataLabel="Status">@context.Status</MudTd>
+		<MudTd DataLabel="">
+			<MudFab @onclick="@(() => Edit(context.AnimalId))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+			<MudFab @onclick="@(() => Delete(context.AnimalId))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+		</MudTd>
+	</RowTemplate>
+	@*<RowEditingTemplate>
+		<MudTd DataLabel="Name">
+			<MudTextField @bind-Value="@context.Name" Required />
+		</MudTd>
+		<MudTd DataLabel="Breed">
+			<MudTextField @bind-Value="@context.Breed" Required />
+		</MudTd>
+		<MudTd DataLabel="BirthDate">
+			<MudTextField @bind-Value="@context.BirthDate" Required />
+		</MudTd>
+		<MudTd DataLabel="Sex">
+			<MudSelect @bind-Value="@context.Sex" T="string" AnchorOrigin="Origin.BottomCenter">
+				<MudSelectItem Value="@("Male")" />
+				<MudSelectItem Value="@("Female")" />
+			</MudSelect>
+		</MudTd>
+		<MudTd DataLabel="Sex">
+			<MudTextField @bind-Value="@context.Price" Required />
+		</MudTd>
+		<MudTd DataLabel="Sex">
+			<MudSelect @bind-Value="@context.Status" T="string" AnchorOrigin="Origin.BottomCenter">
+				<MudSelectItem Value="@("Active")" />
+				<MudSelectItem Value="@("Inactive")" />
+			</MudSelect>
+		</MudTd>
+	</RowEditingTemplate>*@
+
+	<PagerContent>
+		<MudTablePager PageSizeOptions="new int[]{10, 20, 30, 40, 50, 100}" />
+	</PagerContent>
+</MudTable>
+
+<div class="d-flex flex-wrap mt-4">
+	<MudSwitch @bind-Checked="@hover" Color="Color.Primary">Hover</MudSwitch>
+	<MudSwitch @bind-Checked="@dense" Color="Color.Secondary">Dense</MudSwitch>
+</div>
+
+@code{
+
+	private HashSet<Animal> selectedItems = new HashSet<Animal>();
+
+	private bool dense = false;
+	private bool hover = true;
+	private string searchString = "";
+
+	private Animal animal = new Animal();
+	private HashSet<Animal> animals = new HashSet<Animal>();
+
+	DateTime? lDate = DateTime.Today;
+
+	protected override async Task OnInitializedAsync()
+	{
+		GetAnimals();
+	}
+
+	private void OnUpdateAll()
+	{
+		var l = selectedItems.ToList();
+		l.ForEach(e => e.Selected = true);
+		animalService.UpdateAll(l);
+		Snackbar.Add("Animal Selected Saved", Severity.Success);
+	}
+
+	private void GetAnimals()
+	{
+		animals = animalService.GetAnimals();
+		selectedItems = animals.Where(e => e.Selected).ToHashSet();
+	}
+
+	private bool FilterFunc(Animal Animal)
+	{
+		if (string.IsNullOrWhiteSpace(searchString))
+			return true;
+		if (Animal.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+			return true;
+		if (Animal.Breed.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+			return true;
+		if (Animal.Sex.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+			return true;
+		if ($"{Animal.Price}".Contains(searchString))
+			return true;
+		if (Animal.Status.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+			return true;
+		return false;
+
+	}	
+
+	private void Save()
+	{
+		animal.BirthDate = Convert.ToDateTime(lDate);
+		animalService.Save(animal);
+		animal = new Animal();
+		Snackbar.Add("Animal Saved", Severity.Success);
+		lDate = DateTime.Today;
+		GetAnimals();
+	}
+
+	private void Edit(int animalId)
+	{
+		animal = animals.FirstOrDefault(x => x.AnimalId == animalId);
+		lDate = animal.BirthDate;
+	}
+
+	private void Delete(int animalId)
+	{
+		animalService.Delete(animalId);
+		Snackbar.Add("Animal Deleted", Severity.Warning);
+		GetAnimals();
+	}
+}
